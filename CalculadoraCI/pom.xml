@@ -3,7 +3,7 @@
     
     <modelVersion>4.0.0</modelVersion>
     <groupId>com</groupId>
-    <artifactId>CalculadoraCI</artifactId>
+    <artifactId>exemplo1_calculadora_junit5</artifactId>
     <version>1</version>
     <packaging>jar</packaging>
     <name>CalculadoraCI</name>
