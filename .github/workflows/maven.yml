@@ -15,31 +15,40 @@ jobs:
     steps:
       - name: Realiza o checkout do repositório
         uses: actions/checkout@v3
+
       - name: Configura o JDK 18
         uses: actions/setup-java@v3
         with:
           java-version: '18'
           distribution: 'temurin'
           cache: maven
+
       - name: Compila o projeto com Maven
         run: mvn -B compile --file pom.xml
+
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
+
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-      - name: Build and analyze
+
+      - name: Build and analyze com SonarCloud
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=lmitsuol_CalculadoraCIcopia org.jacoco:jacoco-maven-plugin:prepare-agent -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-  
+        run: |
+          mvn -B verify \
+            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=lmitsuol_CalculadoraCIcopia \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+
   # Jobs do ambiente de homologação
   build-hmg:
     runs-on: ubuntu-latest
@@ -51,12 +60,14 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
       - name: Configura o JDK 18
         uses: actions/setup-java@v3
         with:
           java-version: '18'
           distribution: 'temurin'
           cache: maven
+
       - name: Testa o projeto com Maven
         run: mvn -B test --file pom.xml
 
@@ -69,18 +80,26 @@ jobs:
     steps:
       - name: Realiza o checkout do repositório
         uses: actions/checkout@v3
+
       - name: Configura o JDK 18
         uses: actions/setup-java@v3
         with:
           java-version: '18'
           distribution: 'temurin'
           cache: maven
+
       - name: Empacota o projeto com Maven
         run: mvn -B package --file pom.xml -DskipTests
+
+      - name: Lista os arquivos da pasta target
+        run: ls -lh target
+
       - name: Cria uma pasta temporária de downloads de artefatos
         run: mkdir staging
+
       - name: Copia os artefatos a serem publicados na pasta temporária
-        run: cp target/*jar-with-dependencies.jar staging
+        run: cp target/*.jar staging
+
       - name: Usa Upload Artifact do GitHub Action
         uses: actions/upload-artifact@v4
         with:
